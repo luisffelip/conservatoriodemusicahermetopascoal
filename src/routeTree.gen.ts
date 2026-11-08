@@ -10,33 +10,154 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ColaboracaoRouteImport } from './routes/colaboracao'
+import { Route as EspacosRouteImport } from './routes/espacos'
+import { Route as EventosRouteImport } from './routes/eventos'
+import { Route as FormacaoRouteImport } from './routes/formacao'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MinhaAreaRouteImport } from './routes/minha-area'
+import { Route as EspacosIdRouteImport } from './routes/espacos_.$id'
+import { Route as EventosIdRouteImport } from './routes/eventos_.$id'
+import { Route as FormacaoIdRouteImport } from './routes/formacao_.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ColaboracaoRoute = ColaboracaoRouteImport.update({
+  id: '/colaboracao',
+  path: '/colaboracao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EspacosRoute = EspacosRouteImport.update({
+  id: '/espacos',
+  path: '/espacos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventosRoute = EventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormacaoRoute = FormacaoRouteImport.update({
+  id: '/formacao',
+  path: '/formacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhaAreaRoute = MinhaAreaRouteImport.update({
+  id: '/minha-area',
+  path: '/minha-area',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EspacosIdRoute = EspacosIdRouteImport.update({
+  id: '/espacos_/$id',
+  path: '/espacos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventosIdRoute = EventosIdRouteImport.update({
+  id: '/eventos_/$id',
+  path: '/eventos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormacaoIdRoute = FormacaoIdRouteImport.update({
+  id: '/formacao_/$id',
+  path: '/formacao/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/colaboracao': typeof ColaboracaoRoute
+  '/espacos': typeof EspacosRoute
+  '/eventos': typeof EventosRoute
+  '/formacao': typeof FormacaoRoute
+  '/login': typeof LoginRoute
+  '/minha-area': typeof MinhaAreaRoute
+  '/espacos/$id': typeof EspacosIdRoute
+  '/eventos/$id': typeof EventosIdRoute
+  '/formacao/$id': typeof FormacaoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/colaboracao': typeof ColaboracaoRoute
+  '/espacos': typeof EspacosRoute
+  '/eventos': typeof EventosRoute
+  '/formacao': typeof FormacaoRoute
+  '/login': typeof LoginRoute
+  '/minha-area': typeof MinhaAreaRoute
+  '/espacos/$id': typeof EspacosIdRoute
+  '/eventos/$id': typeof EventosIdRoute
+  '/formacao/$id': typeof FormacaoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/colaboracao': typeof ColaboracaoRoute
+  '/espacos': typeof EspacosRoute
+  '/eventos': typeof EventosRoute
+  '/formacao': typeof FormacaoRoute
+  '/login': typeof LoginRoute
+  '/minha-area': typeof MinhaAreaRoute
+  '/espacos_/$id': typeof EspacosIdRoute
+  '/eventos_/$id': typeof EventosIdRoute
+  '/formacao_/$id': typeof FormacaoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/colaboracao'
+    | '/espacos'
+    | '/eventos'
+    | '/formacao'
+    | '/login'
+    | '/minha-area'
+    | '/espacos/$id'
+    | '/eventos/$id'
+    | '/formacao/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/colaboracao'
+    | '/espacos'
+    | '/eventos'
+    | '/formacao'
+    | '/login'
+    | '/minha-area'
+    | '/espacos/$id'
+    | '/eventos/$id'
+    | '/formacao/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/colaboracao'
+    | '/espacos'
+    | '/eventos'
+    | '/formacao'
+    | '/login'
+    | '/minha-area'
+    | '/espacos_/$id'
+    | '/eventos_/$id'
+    | '/formacao_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ColaboracaoRoute: typeof ColaboracaoRoute
+  EspacosRoute: typeof EspacosRoute
+  EventosRoute: typeof EventosRoute
+  FormacaoRoute: typeof FormacaoRoute
+  LoginRoute: typeof LoginRoute
+  MinhaAreaRoute: typeof MinhaAreaRoute
+  EspacosIdRoute: typeof EspacosIdRoute
+  EventosIdRoute: typeof EventosIdRoute
+  FormacaoIdRoute: typeof FormacaoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +169,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/colaboracao': {
+      id: '/colaboracao'
+      path: '/colaboracao'
+      fullPath: '/colaboracao'
+      preLoaderRoute: typeof ColaboracaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/espacos': {
+      id: '/espacos'
+      path: '/espacos'
+      fullPath: '/espacos'
+      preLoaderRoute: typeof EspacosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eventos': {
+      id: '/eventos'
+      path: '/eventos'
+      fullPath: '/eventos'
+      preLoaderRoute: typeof EventosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/formacao': {
+      id: '/formacao'
+      path: '/formacao'
+      fullPath: '/formacao'
+      preLoaderRoute: typeof FormacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minha-area': {
+      id: '/minha-area'
+      path: '/minha-area'
+      fullPath: '/minha-area'
+      preLoaderRoute: typeof MinhaAreaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/espacos_/$id': {
+      id: '/espacos_/$id'
+      path: '/espacos/$id'
+      fullPath: '/espacos/$id'
+      preLoaderRoute: typeof EspacosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eventos_/$id': {
+      id: '/eventos_/$id'
+      path: '/eventos/$id'
+      fullPath: '/eventos/$id'
+      preLoaderRoute: typeof EventosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/formacao_/$id': {
+      id: '/formacao_/$id'
+      path: '/formacao/$id'
+      fullPath: '/formacao/$id'
+      preLoaderRoute: typeof FormacaoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ColaboracaoRoute: ColaboracaoRoute,
+  EspacosRoute: EspacosRoute,
+  EventosRoute: EventosRoute,
+  FormacaoRoute: FormacaoRoute,
+  LoginRoute: LoginRoute,
+  MinhaAreaRoute: MinhaAreaRoute,
+  EspacosIdRoute: EspacosIdRoute,
+  EventosIdRoute: EventosIdRoute,
+  FormacaoIdRoute: FormacaoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
