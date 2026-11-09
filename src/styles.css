@@ -6,7 +6,7 @@
 
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", Georgia, serif;
+  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -38,6 +38,15 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-formacao: var(--formacao);
+  --color-formacao-soft: var(--formacao-soft);
+  --color-espacos: var(--espacos);
+  --color-espacos-soft: var(--espacos-soft);
+  --color-colab: var(--colab);
+  --color-colab-soft: var(--colab-soft);
+  --color-eventos: var(--eventos);
+  --color-eventos-soft: var(--eventos-soft);
+  --color-module-foreground: var(--module-foreground);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -49,43 +58,54 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  /* Palette: navy #172B4D, mid blue #315C8C, beige #F5F1E8, light gray #E9EDF2, text #394150 */
-  --background: oklch(0.962 0.012 85);
+  --radius: 0.75rem;
+  /* Navy UI, mid-blue interactions, near-white surfaces, one color per module */
+  --background: oklch(0.975 0.004 250);
   --foreground: oklch(0.36 0.025 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.36 0.025 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.36 0.025 260);
-  --navy: oklch(0.29 0.07 260);
-  --navy-foreground: oklch(0.97 0.01 85);
-  --primary: oklch(0.45 0.09 252);
+  --navy: oklch(0.27 0.07 262);
+  --navy-foreground: oklch(0.98 0.005 250);
+  --primary: oklch(0.47 0.11 255);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.94 0.008 250);
-  --secondary-foreground: oklch(0.29 0.07 260);
-  --muted: oklch(0.94 0.008 250);
+  --secondary: oklch(0.95 0.008 250);
+  --secondary-foreground: oklch(0.27 0.07 262);
+  --muted: oklch(0.955 0.006 250);
   --muted-foreground: oklch(0.52 0.02 260);
-  --accent: oklch(0.92 0.025 250);
-  --accent-foreground: oklch(0.29 0.07 260);
-  --beige: oklch(0.962 0.012 85);
-  --success: oklch(0.94 0.035 150);
-  --success-foreground: oklch(0.4 0.09 150);
-  --warning: oklch(0.96 0.05 88);
-  --warning-foreground: oklch(0.45 0.09 70);
+  --accent: oklch(0.94 0.025 255);
+  --accent-foreground: oklch(0.27 0.07 262);
+  --beige: oklch(0.955 0.01 250);
+  --success: oklch(0.95 0.04 150);
+  --success-foreground: oklch(0.42 0.1 150);
+  --warning: oklch(0.96 0.05 85);
+  --warning-foreground: oklch(0.45 0.09 65);
   --destructive: oklch(0.577 0.2 27);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.01 250);
-  --input: oklch(0.89 0.012 250);
-  --ring: oklch(0.45 0.09 252);
-  --sidebar: oklch(0.29 0.07 260);
-  --sidebar-foreground: oklch(0.88 0.02 255);
-  --sidebar-primary: oklch(0.45 0.09 252);
+  --border: oklch(0.92 0.008 250);
+  --input: oklch(0.89 0.01 250);
+  --ring: oklch(0.47 0.11 255);
+
+  --formacao: oklch(0.55 0.15 258);
+  --formacao-soft: oklch(0.95 0.03 258);
+  --espacos: oklch(0.55 0.13 152);
+  --espacos-soft: oklch(0.95 0.04 152);
+  --colab: oklch(0.64 0.17 48);
+  --colab-soft: oklch(0.96 0.04 60);
+  --eventos: oklch(0.58 0.19 12);
+  --eventos-soft: oklch(0.96 0.03 12);
+  --module-foreground: oklch(1 0 0);
+
+  --sidebar: oklch(0.27 0.07 262);
+  --sidebar-foreground: oklch(0.86 0.025 255);
+  --sidebar-primary: oklch(0.42 0.1 258);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.35 0.075 258);
+  --sidebar-accent: oklch(0.33 0.075 260);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.36 0.06 258);
+  --sidebar-border: oklch(0.34 0.06 260);
   --sidebar-ring: oklch(0.6 0.08 252);
-  --shadow-card: 0 1px 2px oklch(0.29 0.07 260 / 6%), 0 4px 16px -6px oklch(0.29 0.07 260 / 10%);
+  --shadow-card: 0 1px 2px oklch(0.27 0.07 262 / 5%), 0 6px 18px -8px oklch(0.27 0.07 262 / 12%);
 }
 
 @layer base {
@@ -99,19 +119,11 @@
   }
   h1, h2, h3 {
     color: var(--color-navy);
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
   }
 }
 
 @utility shadow-card {
   box-shadow: var(--shadow-card);
-}
-
-@utility staff-lines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 10px,
-    oklch(1 0 0 / 9%) 10px,
-    oklch(1 0 0 / 9%) 11px
-  );
 }

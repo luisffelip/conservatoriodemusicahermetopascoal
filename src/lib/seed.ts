@@ -15,6 +15,12 @@ export interface State {
   reservations: Reservation[]; enrollments: Enrollment[]; posts: Post[]; events: EventItem[]; notifications: Notification[];
 }
 
+/** Static conservatory notices shown on the dashboard (fictional). */
+export const ANNOUNCEMENTS = [
+  { id: "a1", title: "Inscrições abertas para o Festival de Música", text: "Alunos e grupos podem se inscrever até o fim do mês na secretaria." },
+  { id: "a2", title: "Sala de ensaio em manutenção no sábado", text: "A sala ficará indisponível pela manhã para ajustes no tratamento acústico." },
+];
+
 export const SLOTS = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 
 const day = (offset: number) => {

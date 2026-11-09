@@ -1,12 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Check, CheckCircle2, Info, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Info, Users, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Panel, Tag, useAuthGuard } from "@/components/ui-kit";
-import { SpaceIcon } from "@/components/space-icon";
+import { SpacePhoto } from "@/components/space-icon";
 import { actions, fmtDate, useStore } from "@/lib/store";
 import { createSeed, SLOTS } from "@/lib/seed";
 
@@ -62,28 +62,29 @@ function SpaceDetail() {
 
   return (
     <div>
-      <Link to="/espacos" className="mb-6 inline-flex items-center gap-1 text-sm text-primary hover:underline"><ArrowLeft className="h-4 w-4" /> Voltar aos espaços</Link>
-      <Panel className="mb-6 flex flex-col gap-6 md:flex-row">
-        <div className="grid h-36 w-full shrink-0 place-items-center rounded-lg bg-beige text-navy md:w-48"><SpaceIcon id={id} className="h-14 w-14" /></div>
-        <div className="flex-1">
+      <Link to="/espacos" className="mb-5 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"><ArrowLeft className="h-4 w-4" /> Voltar aos espaços</Link>
+      <h1 className="mb-4 text-2xl font-bold md:text-3xl">{space.name}</h1>
+      <Panel className="mb-5 grid gap-5 md:grid-cols-[minmax(0,320px)_1fr]">
+        <SpacePhoto id={id} name={space.name} className="aspect-[4/3] w-full rounded-lg" />
+        <div className="min-w-0">
           <Tag tone="muted">{space.type}</Tag>
-          <h1 className="mt-2 font-display text-3xl">{space.name}</h1>
-          <p className="mt-2 text-muted-foreground">{space.description}</p>
-          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <p className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Capacidade: {space.capacity}</p>
-            <p>Finalidade: {space.purpose}</p>
+          <h2 className="mt-3 text-sm font-semibold text-navy">Descrição</h2>
+          <p className="mt-1 text-muted-foreground">{space.description}</p>
+          <div className="mt-4 space-y-2 text-sm">
+            <p className="flex items-center gap-2"><Users className="h-4 w-4 shrink-0 text-espacos" /> <b className="font-semibold text-navy">Capacidade:</b> {space.capacity}</p>
+            <p className="flex items-start gap-2"><Wrench className="mt-0.5 h-4 w-4 shrink-0 text-espacos" /> <span><b className="font-semibold text-navy">Equipamentos:</b> {space.resources.join(", ")}</span></p>
+            <p className="pl-6 text-muted-foreground">Finalidade: {space.purpose}</p>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">{space.resources.map((r) => <Tag key={r}>{r}</Tag>)}</div>
-          {!step && <Button className="mt-5" onClick={start}>Consultar disponibilidade</Button>}
+          {!step && <Button className="mt-5 bg-navy text-navy-foreground hover:bg-navy/90" onClick={start}>Consultar disponibilidade</Button>}
         </div>
       </Panel>
 
       {step && (
         <Panel>
-          <h2 className="text-xl font-semibold">Solicitar reserva</h2>
-          <div className="mt-5 grid gap-6 lg:grid-cols-[260px_1fr]">
+          <h2 className="text-lg font-bold">Disponibilidade</h2>
+          <div className="mt-4 grid gap-6 lg:grid-cols-[240px_1fr]">
             <div>
-              <label className="text-sm font-medium text-navy" htmlFor="date">1. Escolha a data</label>
+              <label className="flex items-center gap-1.5 text-sm font-medium text-navy" htmlFor="date"><CalendarDays className="h-4 w-4" /> 1. Escolha a data</label>
               <Input id="date" type="date" min={today()} value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="mt-2" />
             </div>
             <div>
@@ -100,7 +101,8 @@ function SpaceDetail() {
                           disabled={busy}
                           onClick={() => setTime(t)}
                           aria-label={`${t} ${busy ? "indisponível" : "disponível"}`}
-                          className={`rounded-lg border px-2 py-2.5 text-sm font-medium transition-colors ${busy ? "cursor-not-allowed bg-muted text-muted-foreground line-through" : sel ? "border-primary bg-primary text-primary-foreground" : "border-success-foreground/30 bg-success text-success-foreground hover:border-primary"}`}
+                          aria-pressed={sel}
+                          className={`rounded-lg border px-2 py-2.5 text-sm font-semibold transition-colors ${busy ? "cursor-not-allowed bg-muted text-muted-foreground line-through" : sel ? "border-navy bg-navy text-navy-foreground" : "bg-card text-navy hover:border-primary hover:bg-accent"}`}
                         >
                           {t}
                         </button>
@@ -108,7 +110,8 @@ function SpaceDetail() {
                     })}
                   </div>
                   <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-success" /> Disponível</span>
+                    <span className="flex items-center gap-1"><span className="h-3 w-3 rounded border bg-card" /> Disponível</span>
+                    <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-navy" /> Selecionado</span>
                     <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-muted" /> Indisponível</span>
                   </div>
                 </>
@@ -119,15 +122,15 @@ function SpaceDetail() {
             <p className="text-sm font-medium text-navy">3. Finalidade da utilização</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {PURPOSES.map((p) => (
-                <button key={p} onClick={() => setPurpose(p)} className={`flex items-center gap-1 rounded-full border px-4 py-1.5 text-sm ${purpose === p ? "border-primary bg-accent text-navy" : "hover:bg-muted"}`}>
+                <button key={p} onClick={() => setPurpose(p)} aria-pressed={purpose === p} className={`flex items-center gap-1 rounded-full border px-4 py-1.5 text-sm ${purpose === p ? "border-primary bg-accent font-medium text-navy" : "bg-card hover:bg-muted"}`}>
                   {purpose === p && <Check className="h-3.5 w-3.5" />}{p}
                 </button>
               ))}
             </div>
             {purpose === "Outra atividade" && <Input className="mt-3 max-w-md" placeholder="Descreva a atividade" value={other} onChange={(e) => setOther(e.target.value)} />}
           </div>
-          <Button className="mt-6" onClick={review}>Revisar e confirmar</Button>
-          <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground"><Info className="mt-0.5 h-3.5 w-3.5" /> As condições de utilização dependem das regras administrativas do conservatório.</p>
+          <Button className="mt-6 w-full bg-navy text-navy-foreground hover:bg-navy/90 sm:w-auto sm:px-10" onClick={review}>Reservar espaço</Button>
+          <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground"><Info className="mt-0.5 h-3.5 w-3.5 shrink-0" /> As condições de utilização dependem das regras administrativas do conservatório.</p>
         </Panel>
       )}
 
@@ -152,12 +155,12 @@ function SpaceDetail() {
             </>
           ) : (
             <div className="py-4 text-center">
-              <CheckCircle2 className="mx-auto h-12 w-12 text-success-foreground" />
-              <DialogTitle className="mt-3 text-xl">Solicitação de reserva realizada com sucesso!</DialogTitle>
+              <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-espacos text-module-foreground"><Check className="h-8 w-8" strokeWidth={3} /></span>
+              <DialogTitle className="mt-4 text-xl">Solicitação de reserva realizada com sucesso!</DialogTitle>
               <p className="mt-2 text-muted-foreground">{space.name} · {fmtDate(date)}</p>
-              <div className="mt-6 flex justify-center gap-2">
-                <Button variant="outline" onClick={() => setConfirming(false)}>Fechar</Button>
-                <Button asChild><Link to="/minha-area">Ver minhas reservas</Link></Button>
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <Button className="bg-navy text-navy-foreground hover:bg-navy/90" onClick={() => setConfirming(false)}>Fechar</Button>
+                <Link to="/minha-area" className="text-sm font-medium text-primary underline">Ver minhas reservas</Link>
               </div>
             </div>
           )}
