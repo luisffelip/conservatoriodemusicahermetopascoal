@@ -59,7 +59,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
         {user ? (
           <div className="space-y-1">
             <Link to="/minha-area" onClick={onNavigate} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-sidebar-accent">
-              <UserAvatar name={user.name} src={user.avatar} />
+              <UserAvatar name={user.name} src={user.avatar} className="bg-sidebar-primary text-sidebar-primary-foreground" />
               <span className="min-w-0 leading-tight">
                 <span className="block truncate text-sm font-medium text-sidebar-accent-foreground">{user.name}</span>
                 <span className="block truncate text-xs text-sidebar-foreground/70">{user.email}</span>

@@ -30,3 +30,4 @@ use the editor.
 <!-- LOVABLE:END -->
 
 - App data lives in `src/lib/store.ts` (localStorage, seeded from `src/lib/seed.ts`); components only use `useStore` selectors returning raw slices plus `actions`, so a backend can replace the store later without touching pages.
+- Module identity (Formação/Espaços/Colaboração/Eventos colors and icons) comes from `MODULES` in `src/components/ui-kit.tsx` backed by `--formacao/--espacos/--colab/--eventos` tokens in `src/styles.css`; reuse it so every page stays visually consistent.

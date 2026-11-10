@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Music2 } from "lucide-react";
+import { Lock, Mail, Music2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/AppShell";
 import { actions } from "@/lib/store";
 
 export const Route = createFileRoute("/login")({
@@ -17,6 +18,18 @@ export const Route = createFileRoute("/login")({
   }),
   component: Login,
 });
+
+function Field({ icon: I, label, ...props }: { icon: typeof Mail; label: string } & React.ComponentProps<typeof Input>) {
+  return (
+    <label className="block space-y-1.5 text-sm font-medium text-navy">
+      {label}
+      <span className="relative block">
+        <I className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input {...props} className="h-11 pl-9" />
+      </span>
+    </label>
+  );
+}
 
 function Login() {
   const router = useRouter();
@@ -50,31 +63,24 @@ function Login() {
   const up = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="staff-lines hidden flex-col justify-between bg-navy p-12 text-navy-foreground lg:flex">
-        <div className="flex items-center gap-3"><Music2 className="h-6 w-6" /><span className="font-display text-xl">Hermeto Pascoal</span></div>
-        <div>
-          <h1 className="font-display text-4xl text-navy-foreground">Conservatório de Música Hermeto Pascoal</h1>
-          <p className="mt-4 max-w-md text-navy-foreground/80">Formação musical, espaços para praticar e colaboração entre músicos em Arapiraca, Alagoas.</p>
-        </div>
-        <p className="text-xs text-navy-foreground/60">Protótipo acadêmico com dados demonstrativos.</p>
-      </div>
+    <div className="grid min-h-screen bg-card lg:grid-cols-2">
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <h2 className="font-display text-3xl">{mode === "login" ? "Entrar" : "Criar conta"}</h2>
+          <Link to="/" aria-label="Início"><Logo tone="dark" /></Link>
+          <h1 className="mt-10 text-2xl font-bold">{mode === "login" ? "Bem-vindo de volta!" : "Criar conta"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{mode === "login" ? "Acesse sua conta para continuar." : "Leva menos de um minuto."}</p>
           <form onSubmit={submit} className="mt-6 space-y-4">
-            {mode === "signup" && <label className="block space-y-1.5 text-sm font-medium text-navy">Nome completo<Input value={f.name} onChange={up("name")} /></label>}
-            <label className="block space-y-1.5 text-sm font-medium text-navy">E-mail<Input type="email" value={f.email} onChange={up("email")} /></label>
-            <label className="block space-y-1.5 text-sm font-medium text-navy">Senha<Input type="password" value={f.password} onChange={up("password")} /></label>
-            {mode === "signup" && <label className="block space-y-1.5 text-sm font-medium text-navy">Confirmar senha<Input type="password" value={f.confirm} onChange={up("confirm")} /></label>}
+            {mode === "signup" && <Field icon={User} label="Nome completo" value={f.name} onChange={up("name")} />}
+            <Field icon={Mail} label="E-mail" type="email" value={f.email} onChange={up("email")} />
+            <Field icon={Lock} label="Senha" type="password" value={f.password} onChange={up("password")} />
+            {mode === "signup" && <Field icon={Lock} label="Confirmar senha" type="password" value={f.confirm} onChange={up("confirm")} />}
             {error && <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">{mode === "login" ? "Entrar" : "Criar conta"}</Button>
+            <Button type="submit" className="h-11 w-full bg-navy text-navy-foreground hover:bg-navy/90">{mode === "login" ? "Entrar" : "Criar conta"}</Button>
           </form>
           <p className="mt-4 text-center text-sm">
-            {mode === "login" ? "Ainda não tem conta? " : "Já tem conta? "}
-            <button className="font-medium text-primary hover:underline" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}>
-              {mode === "login" ? "Criar conta" : "Entrar"}
+            {mode === "login" ? "Não tem uma conta? " : "Já tem conta? "}
+            <button className="font-medium text-primary underline" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}>
+              {mode === "login" ? "Cadastre-se" : "Entrar"}
             </button>
           </p>
           {mode === "login" && (
@@ -85,6 +91,18 @@ function Login() {
           )}
           <Link to="/" className="mt-6 block text-center text-sm text-muted-foreground hover:underline">Voltar ao início</Link>
         </div>
+      </div>
+      <div aria-hidden className="relative hidden overflow-hidden bg-navy lg:block">
+        <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-formacao" />
+        <div className="absolute -left-16 top-1/3 h-56 w-56 rounded-full bg-espacos" />
+        <div className="absolute bottom-[-6rem] right-10 h-72 w-72 rounded-full bg-colab" />
+        <div className="absolute bottom-24 left-16 h-32 w-32 rounded-full bg-eventos" />
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="grid h-40 w-40 place-items-center rounded-3xl bg-navy text-navy-foreground shadow-card">
+            <Music2 className="h-20 w-20" />
+          </div>
+        </div>
+        <p className="absolute bottom-6 left-0 right-0 text-center text-xs text-navy-foreground/70">Protótipo acadêmico com dados demonstrativos.</p>
       </div>
     </div>
   );

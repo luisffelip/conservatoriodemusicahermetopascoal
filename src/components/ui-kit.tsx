@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { CalendarDays, DoorOpen, Drum, GraduationCap, Guitar, KeyboardMusic, Mic, Music, Piano, Users, Wind } from "lucide-react";
 import { getState } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 /** Visual identity of each module: solid color, soft tint and icon. */
 export const MODULES = {
@@ -29,7 +30,7 @@ export function PageHeader({ title, subtitle, action, module }: { title: string;
 }
 
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-xl border bg-card p-5 shadow-card ${className}`}>{children}</div>;
+  return <div className={cn("rounded-xl border bg-card p-5 shadow-card", className)}>{children}</div>;
 }
 
 const tones = {
@@ -62,13 +63,13 @@ export function FilterPills<T extends string>({ options, value, onChange, label 
   );
 }
 
-export function UserAvatar({ name, src, size = 8 }: { name: string; src?: string | undefined; size?: number }) {
+export function UserAvatar({ name, src, size = 8, className = "" }: { name: string; src?: string | undefined; size?: number; className?: string }) {
   const initials = name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
   const cls = size === 8 ? "h-8 w-8 text-xs" : size === 10 ? "h-10 w-10 text-sm" : "h-16 w-16 text-lg";
   return src ? (
-    <img src={src} alt={name} className={`${cls} shrink-0 rounded-full object-cover`} />
+    <img src={src} alt={name} className={cn(cls, "shrink-0 rounded-full object-cover", className)} />
   ) : (
-    <span className={`${cls} grid shrink-0 place-items-center rounded-full bg-navy font-semibold text-navy-foreground`}>{initials}</span>
+    <span className={cn(cls, "grid shrink-0 place-items-center rounded-full bg-navy font-semibold text-navy-foreground", className)}>{initials}</span>
   );
 }
 

@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Bell, DoorOpen, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EmptyState, PageHeader, Panel, Tag, UserAvatar } from "@/components/ui-kit";
+import { CourseIcon, EmptyState, PageHeader, Panel, Tag, UserAvatar } from "@/components/ui-kit";
 import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/minha-area")({
@@ -19,6 +20,8 @@ export const Route = createFileRoute("/minha-area")({
   component: MinhaArea,
 });
 
+const tabCls = "rounded-full px-4 py-1.5 text-sm data-[state=active]:bg-navy data-[state=active]:text-navy-foreground data-[state=active]:shadow-none";
+
 function MinhaArea() {
   const user = useCurrentUser();
   if (!user) {
@@ -27,21 +30,27 @@ function MinhaArea() {
         <PageHeader title="Minha área" />
         <Panel className="text-center">
           <p className="text-muted-foreground">Entre na sua conta para acompanhar matrículas, reservas e colaborações.</p>
-          <Button asChild className="mt-4"><Link to="/login">Entrar</Link></Button>
+          <Button asChild className="mt-4 bg-navy text-navy-foreground hover:bg-navy/90"><Link to="/login">Entrar</Link></Button>
         </Panel>
       </div>
     );
   }
   return (
     <div>
-      <PageHeader title="Minha área" subtitle={`Acompanhe suas atividades, ${user.name.split(" ")[0]}.`} />
+      <div className="mb-6 flex items-center gap-4">
+        <UserAvatar name={user.name} src={user.avatar} size={16} />
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-bold md:text-[1.75rem]">Minha área</h1>
+          <p className="truncate text-sm text-muted-foreground">Acompanhe suas atividades, {user.name.split(" ")[0]}.</p>
+        </div>
+      </div>
       <Tabs defaultValue="matriculas">
-        <TabsList className="mb-6 flex h-auto flex-wrap justify-start">
-          <TabsTrigger value="matriculas">Matrículas</TabsTrigger>
-          <TabsTrigger value="reservas">Reservas</TabsTrigger>
-          <TabsTrigger value="colab">Colaborações</TabsTrigger>
-          <TabsTrigger value="notif">Notificações</TabsTrigger>
-          <TabsTrigger value="dados">Dados pessoais</TabsTrigger>
+        <TabsList className="mb-5 flex h-auto flex-wrap justify-start gap-1 bg-transparent p-0">
+          <TabsTrigger className={tabCls} value="matriculas">Minhas matrículas</TabsTrigger>
+          <TabsTrigger className={tabCls} value="reservas">Minhas reservas</TabsTrigger>
+          <TabsTrigger className={tabCls} value="colab">Minhas publicações</TabsTrigger>
+          <TabsTrigger className={tabCls} value="notif">Notificações</TabsTrigger>
+          <TabsTrigger className={tabCls} value="dados">Dados pessoais</TabsTrigger>
         </TabsList>
         <TabsContent value="matriculas"><Matriculas /></TabsContent>
         <TabsContent value="reservas"><Reservas /></TabsContent>
@@ -66,10 +75,11 @@ function Matriculas() {
         const k = classes.find((x) => x.id === e.classId)!;
         const c = courses.find((x) => x.id === k.courseId)!;
         return (
-          <Panel key={e.id} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex-1">
-              <p className="font-semibold text-navy">Curso de {c.name}</p>
-              <p className="text-sm text-muted-foreground">Instrumento: {c.name} · Turma: {k.level} · {k.teacher} · {k.days} {k.time}</p>
+          <Panel key={e.id} className="flex items-center gap-4 p-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-formacao-soft text-formacao"><CourseIcon id={c.id} className="h-5 w-5" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-navy">{c.name} — {k.level}</p>
+              <p className="text-sm text-muted-foreground">{k.days} · {k.time} · {k.teacher}</p>
             </div>
             <Tag tone={e.status === "Aprovada" ? "success" : "warning"}>{e.status}</Tag>
           </Panel>
@@ -88,15 +98,18 @@ function Reservas() {
   return (
     <div className="space-y-3">
       {mine.map((r) => (
-        <Panel key={r.id} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex-1">
+        <Panel key={r.id} className="flex flex-wrap items-center gap-4 p-4">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-espacos-soft text-espacos"><DoorOpen className="h-5 w-5" /></span>
+          <div className="min-w-0 flex-1">
             <p className="font-semibold text-navy">{spaces.find((s) => s.id === r.spaceId)?.name}</p>
             <p className="text-sm text-muted-foreground">{fmtDate(r.date)} às {r.time} · {r.purpose}</p>
           </div>
-          <Tag tone={r.status === "Cancelada" ? "muted" : r.status === "Confirmada" ? "success" : "warning"}>{r.status}</Tag>
-          {r.status !== "Cancelada" && (
-            <Button variant="outline" size="sm" onClick={() => { actions.cancelReservation(r.id); toast.success("Reserva cancelada. O horário foi liberado."); }}>Cancelar</Button>
-          )}
+          <div className="flex items-center gap-2">
+            <Tag tone={r.status === "Cancelada" ? "muted" : r.status === "Confirmada" ? "success" : "warning"}>{r.status}</Tag>
+            {r.status !== "Cancelada" && (
+              <Button variant="outline" size="sm" onClick={() => { actions.cancelReservation(r.id); toast.success("Reserva cancelada. O horário foi liberado."); }}>Cancelar</Button>
+            )}
+          </div>
         </Panel>
       ))}
     </div>
@@ -116,7 +129,7 @@ function Colabs() {
         {!mine.length ? <EmptyState text="Você não criou publicações." /> : (
           <div className="space-y-3">
             {mine.map((p) => (
-              <Panel key={p.id}>
+              <Panel key={p.id} className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-medium text-navy">{p.title}</p>
                   <Tag tone={p.interested.length ? "success" : "muted"}>{p.interested.length} interessado(s)</Tag>
@@ -134,7 +147,10 @@ function Colabs() {
         {!interested.length ? <EmptyState text="Nenhuma manifestação de interesse ainda." /> : (
           <div className="space-y-3">
             {interested.map((p) => (
-              <Panel key={p.id}><p className="font-medium text-navy">{p.title}</p><p className="text-sm text-muted-foreground">por {p.authorName} · {p.activity}</p></Panel>
+              <Panel key={p.id} className="flex items-center gap-3 p-4">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-colab-soft text-colab"><Users className="h-4 w-4" /></span>
+                <div className="min-w-0"><p className="font-medium text-navy">{p.title}</p><p className="text-sm text-muted-foreground">por {p.authorName} · {p.activity}</p></div>
+              </Panel>
             ))}
           </div>
         )}
@@ -152,9 +168,10 @@ function Notifs() {
     <div className="space-y-2">
       {mine.some((n) => !n.read) && <Button variant="outline" size="sm" onClick={actions.markNotificationsRead}>Marcar todas como lidas</Button>}
       {mine.map((n) => (
-        <Panel key={n.id} className={`flex items-center gap-3 ${n.read ? "" : "bg-warning/40"}`}>
+        <Panel key={n.id} className={`flex items-center gap-3 p-4 ${n.read ? "" : "border-primary/30 bg-accent/50"}`}>
+          <Bell className={`h-4 w-4 shrink-0 ${n.read ? "text-muted-foreground" : "text-primary"}`} />
           <p className="flex-1 text-sm">{n.text}</p>
-          <span className="text-xs text-muted-foreground">{fmtDate(n.createdAt)}</span>
+          <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(n.createdAt)}</span>
         </Panel>
       ))}
     </div>
@@ -197,7 +214,7 @@ function Dados() {
         <label className="block space-y-1.5 text-sm font-medium text-navy">E-mail<Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
         <label className="block space-y-1.5 text-sm font-medium text-navy">Instrumento de interesse (opcional)<Input value={f.instrument} onChange={(e) => setF({ ...f, instrument: e.target.value })} /></label>
         <div className="flex flex-wrap gap-2">
-          <Button type="submit">Salvar alterações</Button>
+          <Button type="submit" className="bg-navy text-navy-foreground hover:bg-navy/90">Salvar alterações</Button>
           <Button type="button" variant="ghost" onClick={() => { actions.resetDemo(); toast.success("Dados de demonstração restaurados."); }}>Restaurar dados de demonstração</Button>
         </div>
       </form>
