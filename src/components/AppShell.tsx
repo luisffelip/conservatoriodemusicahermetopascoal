@@ -4,6 +4,7 @@ import { Bell, CalendarDays, DoorOpen, GraduationCap, Home, LogIn, LogOut, Menu,
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "./ui-kit";
 
 const NAV = [
@@ -66,7 +67,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
               </span>
             </Link>
             <button
-              onClick={() => { actions.logout(); onNavigate?.(); navigate({ to: "/login" }); }}
+              onClick={async () => { onNavigate?.(); await supabase.auth.signOut(); navigate({ to: "/login", replace: true }); }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               <LogOut className="h-4 w-4" /> Sair da conta

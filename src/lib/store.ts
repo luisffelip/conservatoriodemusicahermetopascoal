@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { createSeed, type State, type Post } from "./seed";
+import { createSeed, type State, type Post, type User } from "./seed";
 
 // Local persistence layer. Swap these functions for a backend later; components only use useStore + actions.
 const KEY = "chp-state-v1";
@@ -47,20 +47,15 @@ export function useCurrentUser() {
 }
 
 export const actions = {
-  login(email: string, password: string) {
-    const u = getState().users.find((x) => x.email.toLowerCase() === email.toLowerCase().trim() && x.password === password);
-    if (!u) return "E-mail ou senha incorretos.";
-    set((s) => ({ ...s, currentUserId: u.id }));
-    return null;
+  /** Called by the auth sync (src/lib/auth.ts) with the signed-in Cloud account, or null after sign-out. */
+  setSessionUser(user: User | null) {
+    set((s) => {
+      if (!user) return { ...s, currentUserId: null };
+      const exists = s.users.some((u) => u.id === user.id);
+      return { ...s, users: exists ? s.users.map((u) => (u.id === user.id ? { ...u, ...user } : u)) : [...s.users, user], currentUserId: user.id };
+    });
   },
-  register(name: string, email: string, password: string) {
-    if (getState().users.some((x) => x.email.toLowerCase() === email.toLowerCase().trim())) return "Já existe uma conta com este e-mail.";
-    const id = uid();
-    set((s) => ({ ...s, users: [...s.users, { id, name: name.trim(), email: email.trim(), password }], currentUserId: id }));
-    return null;
-  },
-  logout() { set((s) => ({ ...s, currentUserId: null })); },
-  updateProfile(data: { name: string; email: string; instrument?: string | undefined; avatar?: string | undefined }) {
+  updateProfile(data: { name: string; email?: string; instrument?: string | undefined; avatar?: string | undefined }) {
     set((s) => ({ ...s, users: s.users.map((u) => (u.id === s.currentUserId ? { ...u, ...data } : u)) }));
   },
   enroll(classId: string) {
@@ -117,7 +112,13 @@ export const actions = {
   markNotificationsRead() {
     set((s) => ({ ...s, notifications: s.notifications.map((n) => (n.userId === s.currentUserId ? { ...n, read: true } : n)) }));
   },
-  resetDemo() { set(() => createSeed()); },
+  resetDemo() {
+    set((s) => {
+      const me = s.users.find((u) => u.id === s.currentUserId);
+      const seed = createSeed();
+      return me ? { ...seed, users: [...seed.users.filter((u) => u.id !== me.id), me], currentUserId: me.id } : seed;
+    });
+  },
 };
 
 export const fmtDate = (d: string) => d.split("-").reverse().join("/");

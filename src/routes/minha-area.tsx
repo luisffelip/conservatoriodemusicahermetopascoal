@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CourseIcon, EmptyState, PageHeader, Panel, Tag, UserAvatar } from "@/components/ui-kit";
 import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
+import { authErrorMessage, saveProfile } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/minha-area")({
   head: () => ({
@@ -190,11 +192,23 @@ function Dados() {
     r.onload = () => setF((x) => ({ ...x, avatar: String(r.result) }));
     r.readAsDataURL(file);
   };
-  const save = (e: React.FormEvent) => {
+  const [saving, setSaving] = useState(false);
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (f.name.trim().length < 3) return void toast.error("Informe seu nome completo.");
     if (!/^\S+@\S+\.\S+$/.test(f.email)) return void toast.error("Informe um e-mail válido.");
-    actions.updateProfile({ name: f.name.trim(), email: f.email.trim(), instrument: f.instrument.trim() || undefined, avatar: f.avatar });
+    setSaving(true);
+    const data = { name: f.name.trim(), instrument: f.instrument.trim() || undefined, avatar: f.avatar };
+    const err = await saveProfile(user.id, data);
+    if (err) { setSaving(false); return void toast.error("Não foi possível salvar. Tente novamente."); }
+    actions.updateProfile(data);
+    if (f.email.trim().toLowerCase() !== user.email.toLowerCase()) {
+      const { error } = await supabase.auth.updateUser({ email: f.email.trim() }, { emailRedirectTo: window.location.origin });
+      setSaving(false);
+      if (error) return void toast.error(authErrorMessage(error));
+      return void toast.success("Dados salvos! Confirme o novo e-mail pelo link que enviamos.");
+    }
+    setSaving(false);
     toast.success("Dados atualizados!");
   };
 
@@ -214,7 +228,7 @@ function Dados() {
         <label className="block space-y-1.5 text-sm font-medium text-navy">E-mail<Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
         <label className="block space-y-1.5 text-sm font-medium text-navy">Instrumento de interesse (opcional)<Input value={f.instrument} onChange={(e) => setF({ ...f, instrument: e.target.value })} /></label>
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" className="bg-navy text-navy-foreground hover:bg-navy/90">Salvar alterações</Button>
+          <Button type="submit" disabled={saving} className="bg-navy text-navy-foreground hover:bg-navy/90">{saving ? "Salvando…" : "Salvar alterações"}</Button>
           <Button type="button" variant="ghost" onClick={() => { actions.resetDemo(); toast.success("Dados de demonstração restaurados."); }}>Restaurar dados de demonstração</Button>
         </div>
       </form>

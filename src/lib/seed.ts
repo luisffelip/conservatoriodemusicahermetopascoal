@@ -1,6 +1,6 @@
 // Demonstration data (fictional). Not official conservatory rules.
 export type Level = "Iniciante" | "Intermediário" | "Avançado";
-export interface User { id: string; name: string; email: string; password: string; instrument?: string | undefined; avatar?: string | undefined }
+export interface User { id: string; name: string; email: string; password?: string | undefined; instrument?: string | undefined; avatar?: string | undefined }
 export interface Course { id: string; name: string; category: string; description: string; info: string }
 export interface ClassGroup { id: string; courseId: string; level: Level; days: string; time: string; teacher: string; capacity: number; enrolled: number }
 export interface Space { id: string; name: string; type: string; description: string; capacity: string; purpose: string; resources: string[] }
@@ -32,11 +32,11 @@ const day = (offset: number) => {
 export function createSeed(): State {
   return {
     users: [
-      { id: "u1", name: "João Silva", email: "joao@demo.com", password: "123456", instrument: "Piano" },
-      { id: "u2", name: "Maria Oliveira", email: "maria@demo.com", password: "123456", instrument: "Violão" },
-      { id: "u3", name: "Pedro Santos", email: "pedro@demo.com", password: "123456", instrument: "Baixo" },
-      { id: "u4", name: "Ana Costa", email: "ana@demo.com", password: "123456", instrument: "Canto" },
-      { id: "u5", name: "Carlos Lima", email: "carlos@demo.com", password: "123456", instrument: "Bateria" },
+      { id: "u1", name: "João Silva", email: "joao@demo.com", instrument: "Piano" },
+      { id: "u2", name: "Maria Oliveira", email: "maria@demo.com", instrument: "Violão" },
+      { id: "u3", name: "Pedro Santos", email: "pedro@demo.com", instrument: "Baixo" },
+      { id: "u4", name: "Ana Costa", email: "ana@demo.com", instrument: "Canto" },
+      { id: "u5", name: "Carlos Lima", email: "carlos@demo.com", instrument: "Bateria" },
     ],
     currentUserId: null,
     courses: [

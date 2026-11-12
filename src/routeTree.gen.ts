@@ -16,6 +16,7 @@ import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as FormacaoRouteImport } from './routes/formacao'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MinhaAreaRouteImport } from './routes/minha-area'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as EspacosIdRouteImport } from './routes/espacos_.$id'
 import { Route as EventosIdRouteImport } from './routes/eventos_.$id'
 import { Route as FormacaoIdRouteImport } from './routes/formacao_.$id'
@@ -55,6 +56,11 @@ const MinhaAreaRoute = MinhaAreaRouteImport.update({
   path: '/minha-area',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EspacosIdRoute = EspacosIdRouteImport.update({
   id: '/espacos_/$id',
   path: '/espacos/$id',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/formacao': typeof FormacaoRoute
   '/login': typeof LoginRoute
   '/minha-area': typeof MinhaAreaRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/espacos/$id': typeof EspacosIdRoute
   '/eventos/$id': typeof EventosIdRoute
   '/formacao/$id': typeof FormacaoIdRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/formacao': typeof FormacaoRoute
   '/login': typeof LoginRoute
   '/minha-area': typeof MinhaAreaRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/espacos/$id': typeof EspacosIdRoute
   '/eventos/$id': typeof EventosIdRoute
   '/formacao/$id': typeof FormacaoIdRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/formacao': typeof FormacaoRoute
   '/login': typeof LoginRoute
   '/minha-area': typeof MinhaAreaRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/espacos_/$id': typeof EspacosIdRoute
   '/eventos_/$id': typeof EventosIdRoute
   '/formacao_/$id': typeof FormacaoIdRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/formacao'
     | '/login'
     | '/minha-area'
+    | '/reset-password'
     | '/espacos/$id'
     | '/eventos/$id'
     | '/formacao/$id'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/formacao'
     | '/login'
     | '/minha-area'
+    | '/reset-password'
     | '/espacos/$id'
     | '/eventos/$id'
     | '/formacao/$id'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/formacao'
     | '/login'
     | '/minha-area'
+    | '/reset-password'
     | '/espacos_/$id'
     | '/eventos_/$id'
     | '/formacao_/$id'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   FormacaoRoute: typeof FormacaoRoute
   LoginRoute: typeof LoginRoute
   MinhaAreaRoute: typeof MinhaAreaRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   EspacosIdRoute: typeof EspacosIdRoute
   EventosIdRoute: typeof EventosIdRoute
   FormacaoIdRoute: typeof FormacaoIdRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MinhaAreaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/espacos_/$id': {
       id: '/espacos_/$id'
       path: '/espacos/$id'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   FormacaoRoute: FormacaoRoute,
   LoginRoute: LoginRoute,
   MinhaAreaRoute: MinhaAreaRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   EspacosIdRoute: EspacosIdRoute,
   EventosIdRoute: EventosIdRoute,
   FormacaoIdRoute: FormacaoIdRoute,

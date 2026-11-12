@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/components/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { useAuthSync } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -106,7 +107,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const isLogin = useRouterState({ select: (r) => r.location.pathname === "/login" });
+  const isLogin = useRouterState({ select: (r) => r.location.pathname === "/login" || r.location.pathname === "/reset-password" });
+  useAuthSync();
 
   return (
     <QueryClientProvider client={queryClient}>
