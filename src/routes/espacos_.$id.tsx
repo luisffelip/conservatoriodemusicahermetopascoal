@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Panel, Tag, useAuthGuard } from "@/components/ui-kit";
 import { SpacePhoto } from "@/components/space-icon";
-import { actions, fmtDate, useStore } from "@/lib/store";
+import { fmtDate, useStore } from "@/lib/store";
+import { reserve } from "@/lib/records";
 import { createSeed, SLOTS } from "@/lib/seed";
 
 export const Route = createFileRoute("/espacos_/$id")({
@@ -53,8 +54,8 @@ function SpaceDetail() {
     setDone(false);
     setConfirming(true);
   };
-  const confirm = () => {
-    const err = actions.reserve(id, date, time, finalPurpose);
+  const confirm = async () => {
+    const err = await reserve(id, date, time, finalPurpose);
     if (err) { toast.error(err); setConfirming(false); setTime(""); return; }
     setDone(true);
     setTime("");

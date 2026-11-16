@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { actions } from "./store";
+import { loadRecords } from "./records";
 
 export const MIN_PASSWORD = 6;
 
@@ -32,7 +33,7 @@ export function authErrorMessage(err: { code?: string | undefined; message?: str
 
 /** Loads the account's profile and makes it the current user of the app store. */
 export async function syncUser(user: AuthUser | null) {
-  if (!user) return actions.setSessionUser(null);
+  if (!user) { actions.setSessionUser(null); return void loadRecords(null); }
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const fallbackName = String(meta["name"] || meta["full_name"] || (user.email ?? "").split("@")[0] || "Usuário");
   let { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
@@ -47,6 +48,7 @@ export async function syncUser(user: AuthUser | null) {
     instrument: profile?.instrument ?? undefined,
     avatar: profile?.avatar_url ?? undefined,
   });
+  await loadRecords(user.id);
 }
 
 /** Keeps the app store in step with the signed-in account. Mount once in the root route. */
@@ -55,7 +57,16 @@ export function useAuthSync() {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "INITIAL_SESSION" && event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       // Defer: calling Supabase inside the callback can deadlock the auth client.
-      setTimeout(() => void syncUser(session?.user ?? null), 0);
+      setTimeout(() => {
+        void syncUser(session?.user ?? null).then(() => {
+          const back = sessionStorage.getItem("chp-redirect");
+          if (event === "SIGNED_IN" && back && window.location.pathname === "/") {
+            sessionStorage.removeItem("chp-redirect");
+            window.history.pushState(null, "", back);
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          }
+        });
+      }, 0);
     });
     return () => data.subscription.unsubscribe();
   }, []);

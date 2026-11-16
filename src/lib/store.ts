@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { createSeed, type State, type Post, type User } from "./seed";
+import { createSeed, type State, type Post, type User, type Enrollment, type Reservation, type Notification } from "./seed";
 
 // Local persistence layer. Swap these functions for a backend later; components only use useStore + actions.
 const KEY = "chp-state-v1";
@@ -58,34 +58,22 @@ export const actions = {
   updateProfile(data: { name: string; email?: string; instrument?: string | undefined; avatar?: string | undefined }) {
     set((s) => ({ ...s, users: s.users.map((u) => (u.id === s.currentUserId ? { ...u, ...data } : u)) }));
   },
-  enroll(classId: string) {
-    const s = getState();
-    const c = s.classes.find((x) => x.id === classId)!;
-    if (c.enrolled >= c.capacity) return "Não há vagas disponíveis nesta turma.";
-    if (s.enrollments.some((e) => e.classId === classId && e.userId === s.currentUserId)) return "Você já solicitou matrícula nesta turma.";
-    const course = s.courses.find((x) => x.id === c.courseId)!;
-    set((st) => ({
-      ...st,
-      classes: st.classes.map((x) => (x.id === classId ? { ...x, enrolled: x.enrolled + 1 } : x)),
-      enrollments: [...st.enrollments, { id: uid(), classId, userId: st.currentUserId!, status: "Em análise", createdAt: now() }],
-      notifications: [{ id: uid(), userId: st.currentUserId!, text: `Sua solicitação de matrícula em ${course.name} — ${c.level} está em análise.`, createdAt: now(), read: false }, ...st.notifications],
-    }));
-    return null;
+  /** Replaces the signed-in user's records with what the database returned (src/lib/records.ts). */
+  setRemote(r: { enrollments: Enrollment[]; reservations: Reservation[]; taken: Reservation[]; notifications: Notification[] }) {
+    set((s) => {
+      const demo = createSeed();
+      const demoRes = demo.reservations;
+      const takenKeys = new Set(r.reservations.map((x) => x.spaceId + x.date + x.time));
+      return {
+        ...s,
+        enrollments: r.enrollments,
+        reservations: [...demoRes, ...r.taken.filter((t) => !takenKeys.has(t.spaceId + t.date + t.time)), ...r.reservations],
+        notifications: [...r.notifications, ...s.notifications.filter((n) => n.userId !== s.currentUserId && !/^[0-9a-f-]{36}$/.test(n.id))],
+        classes: demo.classes.map((k) => ({ ...k, enrolled: k.enrolled + r.enrollments.filter((e) => e.classId === k.id && e.status !== "Cancelada").length })),
+      };
+    });
   },
-  reserve(spaceId: string, date: string, time: string, purpose: string) {
-    const s = getState();
-    if (s.reservations.some((r) => r.spaceId === spaceId && r.date === date && r.time === time && r.status !== "Cancelada")) return "Este horário já está reservado.";
-    const space = s.spaces.find((x) => x.id === spaceId)!;
-    set((st) => ({
-      ...st,
-      reservations: [...st.reservations, { id: uid(), spaceId, date, time, purpose, userId: st.currentUserId!, status: "Pendente" }],
-      notifications: [{ id: uid(), userId: st.currentUserId!, text: `Reserva solicitada: ${space.name}, ${date.split("-").reverse().join("/")} às ${time}.`, createdAt: now(), read: false }, ...st.notifications],
-    }));
-    return null;
-  },
-  cancelReservation(id: string) {
-    set((s) => ({ ...s, reservations: s.reservations.map((r) => (r.id === id ? { ...r, status: "Cancelada" } : r)) }));
-  },
+  patch(fn: (s: State) => State) { set(fn); },
   savePost(data: Omit<Post, "id" | "authorId" | "authorName" | "createdAt" | "interested">, id?: string) {
     const newId = id ?? uid();
     set((s) => {
@@ -108,9 +96,6 @@ export const actions = {
       notifications: [{ id: uid(), userId: p.authorId, text: `${me.name} demonstrou interesse na sua publicação “${p.title}”.`, createdAt: now(), read: false }, ...st.notifications],
     }));
     return null;
-  },
-  markNotificationsRead() {
-    set((s) => ({ ...s, notifications: s.notifications.map((n) => (n.userId === s.currentUserId ? { ...n, read: true } : n)) }));
   },
   resetDemo() {
     set((s) => {

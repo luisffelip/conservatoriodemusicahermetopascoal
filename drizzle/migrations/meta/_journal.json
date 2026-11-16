@@ -8,6 +8,13 @@
       "when": 1794499110034,
       "tag": "0000_create_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794842517452,
+      "tag": "0001_enrollments_reservations_notifications",
+      "breakpoints": true
     }
   ]
 }

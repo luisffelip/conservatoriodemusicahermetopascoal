@@ -111,7 +111,7 @@ function Login() {
 
   const social = async (provider: "google" | "lovable") => {
     setError("");
-    const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: `${window.location.origin}/login` });
+    const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
     if (result.error) return setError("Não foi possível entrar agora. Tente novamente.");
     if (result.redirected) return;
     const { data } = await supabase.auth.getUser();

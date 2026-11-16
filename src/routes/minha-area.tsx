@@ -9,6 +9,8 @@ import { CourseIcon, EmptyState, PageHeader, Panel, Tag, UserAvatar } from "@/co
 import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
 import { authErrorMessage, saveProfile } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { cancelEnrollment, cancelReservation, markRead } from "@/lib/records";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/minha-area")({
   head: () => ({
@@ -64,6 +66,24 @@ function MinhaArea() {
   );
 }
 
+function ConfirmCancel({ label, title, text, onConfirm }: { label: string; title: string; text: string; onConfirm: () => Promise<string | null> }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild><Button variant="outline" size="sm">{label}</Button></AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader><AlertDialogTitle>{title}</AlertDialogTitle><AlertDialogDescription>{text}</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Voltar</AlertDialogCancel>
+          <AlertDialogAction disabled={busy} onClick={async () => { setBusy(true); const e = await onConfirm(); setBusy(false); if (e) toast.error(e); }}>Confirmar cancelamento</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+const ENROLL_LABEL = { Pendente: "Pendente — aguardando autorização", Aprovada: "Aprovada", Cancelada: "Cancelada" } as const;
+
 function Matriculas() {
   const user = useCurrentUser()!;
   const enrollments = useStore((s) => s.enrollments);
@@ -71,22 +91,37 @@ function Matriculas() {
   const courses = useStore((s) => s.courses);
   const mine = enrollments.filter((e) => e.userId === user.id);
   if (!mine.length) return <EmptyState text="Você ainda não solicitou matrículas. Explore a página Formação." />;
+  const active = mine.filter((e) => e.status !== "Cancelada");
+  const past = mine.filter((e) => e.status === "Cancelada");
+  const row = (e: (typeof mine)[number]) => {
+    const k = classes.find((x) => x.id === e.classId);
+    const c = k && courses.find((x) => x.id === k.courseId);
+    if (!k || !c) return null;
+    return (
+      <Panel key={e.id} className={`flex flex-wrap items-center gap-4 p-4 ${e.status === "Cancelada" ? "opacity-70" : ""}`}>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-formacao-soft text-formacao"><CourseIcon id={c.id} className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-navy">{c.name} — {k.level}</p>
+          <p className="text-sm text-muted-foreground">{k.days} · {k.time} · {k.teacher} · solicitada em {fmtDate(e.createdAt)}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Tag tone={e.status === "Aprovada" ? "success" : e.status === "Cancelada" ? "muted" : "warning"}>{ENROLL_LABEL[e.status]}</Tag>
+          {e.status !== "Cancelada" && (
+            <ConfirmCancel
+              label={e.status === "Pendente" ? "Cancelar solicitação" : "Desistir da matrícula"}
+              title={e.status === "Pendente" ? "Cancelar solicitação de matrícula?" : "Desistir da matrícula?"}
+              text={`${c.name} — ${k.level}. O registro continua no seu histórico e a vaga é liberada.`}
+              onConfirm={async () => { const err = await cancelEnrollment(e.id); if (!err) toast.success(e.status === "Pendente" ? "Solicitação cancelada." : "Matrícula cancelada."); return err; }}
+            />
+          )}
+        </div>
+      </Panel>
+    );
+  };
   return (
     <div className="space-y-3">
-      {mine.map((e) => {
-        const k = classes.find((x) => x.id === e.classId)!;
-        const c = courses.find((x) => x.id === k.courseId)!;
-        return (
-          <Panel key={e.id} className="flex items-center gap-4 p-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-formacao-soft text-formacao"><CourseIcon id={c.id} className="h-5 w-5" /></span>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-navy">{c.name} — {k.level}</p>
-              <p className="text-sm text-muted-foreground">{k.days} · {k.time} · {k.teacher}</p>
-            </div>
-            <Tag tone={e.status === "Aprovada" ? "success" : "warning"}>{e.status}</Tag>
-          </Panel>
-        );
-      })}
+      {active.length ? active.map(row) : <EmptyState text="Nenhuma matrícula ativa." />}
+      {past.length > 0 && <><h2 className="pt-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Histórico</h2>{past.map(row)}</>}
     </div>
   );
 }
@@ -97,23 +132,32 @@ function Reservas() {
   const spaces = useStore((s) => s.spaces);
   const mine = reservations.filter((r) => r.userId === user.id).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   if (!mine.length) return <EmptyState text="Nenhuma reserva ainda. Consulte a página Espaços." />;
+  const active = mine.filter((r) => r.status !== "Cancelada");
+  const past = mine.filter((r) => r.status === "Cancelada");
+  const row = (r: (typeof mine)[number]) => {
+    const name = spaces.find((s) => s.id === r.spaceId)?.name;
+    return (
+      <Panel key={r.id} className={`flex flex-wrap items-center gap-4 p-4 ${r.status === "Cancelada" ? "opacity-70" : ""}`}>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-espacos-soft text-espacos"><DoorOpen className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-navy">{name}</p>
+          <p className="text-sm text-muted-foreground">{fmtDate(r.date)} às {r.time} · {r.purpose}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Tag tone={r.status === "Cancelada" ? "muted" : r.status === "Confirmada" ? "success" : "warning"}>{r.status}</Tag>
+          {r.status !== "Cancelada" && (
+            <ConfirmCancel label="Cancelar" title="Cancelar reserva?" text={`${name}, ${fmtDate(r.date)} às ${r.time}. O horário será liberado.`}
+              onConfirm={async () => { const err = await cancelReservation(r.id); if (!err) toast.success("Reserva cancelada. O horário foi liberado."); return err; }} />
+          )}
+        </div>
+      </Panel>
+    );
+  };
   return (
     <div className="space-y-3">
-      {mine.map((r) => (
-        <Panel key={r.id} className="flex flex-wrap items-center gap-4 p-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-espacos-soft text-espacos"><DoorOpen className="h-5 w-5" /></span>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-navy">{spaces.find((s) => s.id === r.spaceId)?.name}</p>
-            <p className="text-sm text-muted-foreground">{fmtDate(r.date)} às {r.time} · {r.purpose}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Tag tone={r.status === "Cancelada" ? "muted" : r.status === "Confirmada" ? "success" : "warning"}>{r.status}</Tag>
-            {r.status !== "Cancelada" && (
-              <Button variant="outline" size="sm" onClick={() => { actions.cancelReservation(r.id); toast.success("Reserva cancelada. O horário foi liberado."); }}>Cancelar</Button>
-            )}
-          </div>
-        </Panel>
-      ))}
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Reservas ativas</h2>
+      {active.length ? active.map(row) : <EmptyState text="Nenhuma reserva ativa." />}
+      {past.length > 0 && <><h2 className="pt-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Canceladas</h2>{past.map(row)}</>}
     </div>
   );
 }
@@ -168,12 +212,13 @@ function Notifs() {
   if (!mine.length) return <EmptyState text="Nenhuma notificação." />;
   return (
     <div className="space-y-2">
-      {mine.some((n) => !n.read) && <Button variant="outline" size="sm" onClick={actions.markNotificationsRead}>Marcar todas como lidas</Button>}
+      {mine.some((n) => !n.read) && <Button variant="outline" size="sm" onClick={async () => { const e = await markRead(mine.filter((n) => !n.read).map((n) => n.id)); if (e) toast.error(e); }}>Marcar todas como lidas</Button>}
       {mine.map((n) => (
         <Panel key={n.id} className={`flex items-center gap-3 p-4 ${n.read ? "" : "border-primary/30 bg-accent/50"}`}>
           <Bell className={`h-4 w-4 shrink-0 ${n.read ? "text-muted-foreground" : "text-primary"}`} />
           <p className="flex-1 text-sm">{n.text}</p>
           <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(n.createdAt)}</span>
+          {n.read ? <span className="shrink-0 text-xs text-muted-foreground">Lida</span> : <Button variant="ghost" size="sm" onClick={async () => { const e = await markRead([n.id]); if (e) toast.error(e); }}>Marcar como lida</Button>}
         </Panel>
       ))}
     </div>

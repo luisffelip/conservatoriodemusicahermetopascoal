@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CourseIcon, Panel, Tag, useAuthGuard } from "@/components/ui-kit";
-import { actions, useCurrentUser, useStore } from "@/lib/store";
+import { useCurrentUser, useStore } from "@/lib/store";
+import { enroll } from "@/lib/records";
 import { createSeed, type ClassGroup } from "@/lib/seed";
 
 export const Route = createFileRoute("/formacao_/$id")({
@@ -41,8 +42,8 @@ function CourseDetail() {
     setDone(false);
     setSelected(k);
   };
-  const confirm = () => {
-    const err = actions.enroll(selected!.id);
+  const confirm = async () => {
+    const err = await enroll(selected!.id);
     if (err) { toast.error(err); setSelected(null); return; }
     setDone(true);
   };
@@ -68,7 +69,7 @@ function CourseDetail() {
       <div className="grid gap-4 md:grid-cols-2">
         {classes.map((k) => {
           const vagas = k.capacity - k.enrolled;
-          const mine = user && enrollments.some((e) => e.classId === k.id && e.userId === user.id);
+          const mine = user && enrollments.some((e) => e.classId === k.id && e.userId === user.id && e.status !== "Cancelada");
           return (
             <Panel key={k.id} className="flex flex-col">
               <div className="flex items-center justify-between gap-2">

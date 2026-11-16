@@ -1,9 +1,11 @@
+import { markRead } from "@/lib/records";
+import { toast } from "sonner";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Bell, CalendarDays, DoorOpen, GraduationCap, Home, LogIn, LogOut, Menu, Music2, Search, User, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
+import { fmtDate, useCurrentUser, useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "./ui-kit";
 
@@ -133,20 +135,27 @@ function Notifications() {
   const mine = all.filter((n) => n.userId === user.id);
   const unread = mine.filter((n) => !n.read).length;
   return (
-    <Popover onOpenChange={(o) => !o && unread && actions.markNotificationsRead()}>
+    <Popover>
       <PopoverTrigger aria-label="Notificações" className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-muted">
         <Bell className="h-5 w-5 text-navy" />
         {unread > 0 && <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">{unread}</span>}
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="border-b px-4 py-3 text-sm font-semibold text-navy">Notificações</div>
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <span className="text-sm font-semibold text-navy">Notificações</span>
+          {unread > 0 && <button className="text-xs font-medium text-primary hover:underline" onClick={() => void markRead(mine.filter((n) => !n.read).map((n) => n.id)).then((e) => e && toast.error(e))}>Marcar todas como lidas</button>}
+        </div>
         <div className="max-h-80 overflow-auto">
           {mine.length === 0 && <p className="p-4 text-sm text-muted-foreground">Nenhuma notificação.</p>}
           {mine.slice(0, 8).map((n) => (
-            <div key={n.id} className={`border-b px-4 py-3 text-sm last:border-0 ${n.read ? "" : "bg-accent/60"}`}>
-              <p>{n.text}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{fmtDate(n.createdAt)}</p>
-            </div>
+            <button key={n.id} type="button" disabled={n.read} onClick={() => void markRead([n.id]).then((e) => e && toast.error(e))}
+              className={`flex w-full gap-2 border-b px-4 py-3 text-left text-sm last:border-0 ${n.read ? "text-muted-foreground" : "bg-accent/60 font-medium hover:bg-accent"}`}>
+              <span aria-hidden className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read ? "bg-transparent" : "bg-primary"}`} />
+              <span className="flex-1">
+                <span className="block">{n.text}</span>
+                <span className="mt-1 block text-xs font-normal text-muted-foreground">{fmtDate(n.createdAt)}{n.read ? " · lida" : " · toque para marcar como lida"}</span>
+              </span>
+            </button>
           ))}
         </div>
         <Link to="/minha-area" className="block border-t px-4 py-2.5 text-center text-sm font-medium text-primary hover:bg-muted">Ver todas</Link>
