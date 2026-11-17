@@ -5,14 +5,14 @@ export interface Course { id: string; name: string; category: string; descriptio
 export interface ClassGroup { id: string; courseId: string; level: Level; days: string; time: string; teacher: string; capacity: number; enrolled: number }
 export interface Space { id: string; name: string; type: string; description: string; capacity: string; purpose: string; resources: string[] }
 export interface Reservation { id: string; spaceId: string; date: string; time: string; purpose: string; userId: string; status: "Pendente" | "Confirmada" | "Cancelada" }
-export interface Enrollment { id: string; classId: string; userId: string; status: "Pendente" | "Aprovada" | "Cancelada"; createdAt: string }
-export interface Post { id: string; authorId: string; authorName: string; title: string; description: string; instrument?: string | undefined; activity: string; date?: string | undefined; period?: string | undefined; createdAt: string; interested: string[] }
+export interface Enrollment { id: string; classId: string; userId: string; status: "Pendente" | "Aprovada" | "Recusada" | "Cancelada"; createdAt: string }
+export interface Post { id: string; authorId: string; authorName: string; title: string; description: string; instrument?: string | undefined; activity: string; date?: string | undefined; period?: string | undefined; createdAt: string; interested: string[]; interestCount?: number; interestedNames?: string[] }
 export interface EventItem { id: string; name: string; date: string; time: string; place: string; description: string; type: string; free?: boolean }
 export interface Notification { id: string; userId: string; text: string; createdAt: string; read: boolean }
 
 export interface State {
   users: User[]; currentUserId: string | null; courses: Course[]; classes: ClassGroup[]; spaces: Space[];
-  reservations: Reservation[]; enrollments: Enrollment[]; posts: Post[]; events: EventItem[]; notifications: Notification[];
+  reservations: Reservation[]; enrollments: Enrollment[]; posts: Post[]; events: EventItem[]; notifications: Notification[]; isAdmin?: boolean;
 }
 
 /** Static conservatory notices shown on the dashboard (fictional). */

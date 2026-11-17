@@ -69,7 +69,7 @@ function CourseDetail() {
       <div className="grid gap-4 md:grid-cols-2">
         {classes.map((k) => {
           const vagas = k.capacity - k.enrolled;
-          const mine = user && enrollments.some((e) => e.classId === k.id && e.userId === user.id && e.status !== "Cancelada");
+          const mine = user && enrollments.some((e) => e.classId === k.id && e.userId === user.id && (e.status === "Pendente" || e.status === "Aprovada"));
           return (
             <Panel key={k.id} className="flex flex-col">
               <div className="flex items-center justify-between gap-2">

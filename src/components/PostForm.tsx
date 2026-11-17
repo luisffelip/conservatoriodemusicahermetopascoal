@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { actions } from "@/lib/store";
+import { savePost } from "@/lib/posts";
 import type { Post } from "@/lib/seed";
 
 const ACTIVITIES = ["Ensaio", "Gravação", "Apresentação", "Outro"];
@@ -17,14 +17,18 @@ export function PostForm({ open, onOpenChange, post, onSaved }: { open: boolean;
   }, [open, post]);
   const up = (k: keyof typeof empty) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
 
-  const submit = (e: React.FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (f.title.trim().length < 5) return void toast.error("Informe um título com pelo menos 5 caracteres.");
     if (f.description.trim().length < 10) return void toast.error("Descreva sua necessidade musical (mín. 10 caracteres).");
-    const id = actions.savePost({ title: f.title.trim(), description: f.description.trim(), instrument: f.instrument.trim() || undefined, activity: f.activity, date: f.date || undefined, period: f.period.trim() || undefined }, post?.id);
+    setBusy(true);
+    const r = await savePost({ title: f.title.trim(), description: f.description.trim(), instrument: f.instrument.trim() || undefined, activity: f.activity, date: f.date || undefined, period: f.period.trim() || undefined }, post?.id);
+    setBusy(false);
+    if (r.error || !r.id) return void toast.error(r.error ?? "Não foi possível salvar.");
     toast.success(post ? "Publicação atualizada!" : "Publicação criada com sucesso!");
     onOpenChange(false);
-    onSaved(id);
+    onSaved(r.id);
   };
 
   return (
@@ -46,7 +50,7 @@ export function PostForm({ open, onOpenChange, post, onSaved }: { open: boolean;
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit">{post ? "Salvar" : "Publicar"}</Button>
+            <Button type="submit" disabled={busy}>{busy ? "Salvando…" : post ? "Salvar" : "Publicar"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

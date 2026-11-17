@@ -9,6 +9,7 @@ import { CourseIcon, EmptyState, PageHeader, Panel, Tag, UserAvatar } from "@/co
 import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
 import { authErrorMessage, saveProfile } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { importLegacyPosts, legacyPosts } from "@/lib/posts";
 import { cancelEnrollment, cancelReservation, markRead } from "@/lib/records";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -82,7 +83,7 @@ function ConfirmCancel({ label, title, text, onConfirm }: { label: string; title
   );
 }
 
-const ENROLL_LABEL = { Pendente: "Pendente — aguardando autorização", Aprovada: "Aprovada", Cancelada: "Cancelada" } as const;
+const ENROLL_LABEL = { Pendente: "Pendente — aguardando autorização", Aprovada: "Aprovada", Recusada: "Recusada", Cancelada: "Cancelada" } as const;
 
 function Matriculas() {
   const user = useCurrentUser()!;
@@ -91,22 +92,22 @@ function Matriculas() {
   const courses = useStore((s) => s.courses);
   const mine = enrollments.filter((e) => e.userId === user.id);
   if (!mine.length) return <EmptyState text="Você ainda não solicitou matrículas. Explore a página Formação." />;
-  const active = mine.filter((e) => e.status !== "Cancelada");
-  const past = mine.filter((e) => e.status === "Cancelada");
+  const active = mine.filter((e) => e.status === "Pendente" || e.status === "Aprovada");
+  const past = mine.filter((e) => e.status === "Cancelada" || e.status === "Recusada");
   const row = (e: (typeof mine)[number]) => {
     const k = classes.find((x) => x.id === e.classId);
     const c = k && courses.find((x) => x.id === k.courseId);
     if (!k || !c) return null;
     return (
-      <Panel key={e.id} className={`flex flex-wrap items-center gap-4 p-4 ${e.status === "Cancelada" ? "opacity-70" : ""}`}>
+      <Panel key={e.id} className={`flex flex-wrap items-center gap-4 p-4 ${e.status === "Cancelada" || e.status === "Recusada" ? "opacity-70" : ""}`}>
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-formacao-soft text-formacao"><CourseIcon id={c.id} className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-navy">{c.name} — {k.level}</p>
           <p className="text-sm text-muted-foreground">{k.days} · {k.time} · {k.teacher} · solicitada em {fmtDate(e.createdAt)}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Tag tone={e.status === "Aprovada" ? "success" : e.status === "Cancelada" ? "muted" : "warning"}>{ENROLL_LABEL[e.status]}</Tag>
-          {e.status !== "Cancelada" && (
+          <Tag tone={e.status === "Aprovada" ? "success" : e.status === "Pendente" ? "warning" : "muted"}>{ENROLL_LABEL[e.status]}</Tag>
+          {(e.status === "Pendente" || e.status === "Aprovada") && (
             <ConfirmCancel
               label={e.status === "Pendente" ? "Cancelar solicitação" : "Desistir da matrícula"}
               title={e.status === "Pendente" ? "Cancelar solicitação de matrícula?" : "Desistir da matrícula?"}
@@ -165,23 +166,36 @@ function Reservas() {
 function Colabs() {
   const user = useCurrentUser()!;
   const posts = useStore((s) => s.posts);
-  const users = useStore((s) => s.users);
   const mine = posts.filter((p) => p.authorId === user.id);
+  const [legacy, setLegacy] = useState<number>(0);
+  useEffect(() => setLegacy(legacyPosts(user.id).length), [user.id]);
+  const runImport = async () => {
+    const r = await importLegacyPosts(user.id);
+    if (r.error) return void toast.error(r.error);
+    setLegacy(legacyPosts(user.id).length);
+    toast.success(r.imported ? `${r.imported} publicação(ões) antigas salvas online.` : "Nada novo para importar — essas publicações já estavam salvas.");
+  };
   const interested = posts.filter((p) => p.interested.includes(user.id));
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div>
         <h2 className="mb-3 font-semibold">Minhas publicações</h2>
+        {legacy > 0 && (
+          <Panel className="mb-3 flex flex-wrap items-center gap-3 p-4 text-sm">
+            <p className="flex-1">Encontramos {legacy} publicação(ões) suas guardadas só neste navegador, de antes do salvamento online.</p>
+            <Button size="sm" variant="outline" onClick={runImport}>Salvar online</Button>
+          </Panel>
+        )}
         {!mine.length ? <EmptyState text="Você não criou publicações." /> : (
           <div className="space-y-3">
             {mine.map((p) => (
               <Panel key={p.id} className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-medium text-navy">{p.title}</p>
-                  <Tag tone={p.interested.length ? "success" : "muted"}>{p.interested.length} interessado(s)</Tag>
+                  <Tag tone={p.interestCount ? "success" : "muted"}>{p.interestCount ?? 0} interessado(s)</Tag>
                 </div>
-                {p.interested.length > 0 && (
-                  <p className="mt-2 text-sm text-muted-foreground">Interessados: {p.interested.map((id) => users.find((u) => u.id === id)?.name).join(", ")}</p>
+                {!!p.interestedNames?.length && (
+                  <p className="mt-2 text-sm text-muted-foreground">Interessados: {p.interestedNames.join(", ")}</p>
                 )}
               </Panel>
             ))}
@@ -274,7 +288,6 @@ function Dados() {
         <label className="block space-y-1.5 text-sm font-medium text-navy">Instrumento de interesse (opcional)<Input value={f.instrument} onChange={(e) => setF({ ...f, instrument: e.target.value })} /></label>
         <div className="flex flex-wrap gap-2">
           <Button type="submit" disabled={saving} className="bg-navy text-navy-foreground hover:bg-navy/90">{saving ? "Salvando…" : "Salvar alterações"}</Button>
-          <Button type="button" variant="ghost" onClick={() => { actions.resetDemo(); toast.success("Dados de demonstração restaurados."); }}>Restaurar dados de demonstração</Button>
         </div>
       </form>
     </Panel>

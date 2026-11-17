@@ -20,6 +20,7 @@ export type Database = {
           class_id: string
           created_at: string
           id: string
+          reviewed_at: string | null
           status: string
           user_id: string
         }
@@ -28,6 +29,7 @@ export type Database = {
           class_id: string
           created_at?: string
           id?: string
+          reviewed_at?: string | null
           status?: string
           user_id: string
         }
@@ -36,6 +38,7 @@ export type Database = {
           class_id?: string
           created_at?: string
           id?: string
+          reviewed_at?: string | null
           status?: string
           user_id?: string
         }
@@ -65,6 +68,77 @@ export type Database = {
           read_at?: string | null
           text?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      post_interests: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_interests_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          activity: string
+          author_id: string
+          author_name: string
+          created_at: string
+          description: string
+          id: string
+          instrument: string | null
+          interest_count: number
+          period: string | null
+          title: string
+          wanted_date: string | null
+        }
+        Insert: {
+          activity: string
+          author_id: string
+          author_name: string
+          created_at?: string
+          description: string
+          id?: string
+          instrument?: string | null
+          interest_count?: number
+          period?: string | null
+          title: string
+          wanted_date?: string | null
+        }
+        Update: {
+          activity?: string
+          author_id?: string
+          author_name?: string
+          created_at?: string
+          description?: string
+          id?: string
+          instrument?: string | null
+          interest_count?: number
+          period?: string | null
+          title?: string
+          wanted_date?: string | null
         }
         Relationships: []
       }

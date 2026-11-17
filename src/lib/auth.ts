@@ -3,6 +3,7 @@ import type { User as AuthUser } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { actions } from "./store";
 import { loadRecords } from "./records";
+import { loadPosts } from "./posts";
 
 export const MIN_PASSWORD = 6;
 
@@ -33,7 +34,7 @@ export function authErrorMessage(err: { code?: string | undefined; message?: str
 
 /** Loads the account's profile and makes it the current user of the app store. */
 export async function syncUser(user: AuthUser | null) {
-  if (!user) { actions.setSessionUser(null); return void loadRecords(null); }
+  if (!user) { actions.setSessionUser(null); actions.patch((s) => ({ ...s, isAdmin: false })); await Promise.all([loadRecords(null), loadPosts(null)]); return; }
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const fallbackName = String(meta["name"] || meta["full_name"] || (user.email ?? "").split("@")[0] || "Usuário");
   let { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
@@ -48,7 +49,9 @@ export async function syncUser(user: AuthUser | null) {
     instrument: profile?.instrument ?? undefined,
     avatar: profile?.avatar_url ?? undefined,
   });
-  await loadRecords(user.id);
+  const { data: admin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+  actions.patch((s) => ({ ...s, isAdmin: !!admin }));
+  await Promise.all([loadRecords(user.id), loadPosts(user.id)]);
 }
 
 /** Keeps the app store in step with the signed-in account. Mount once in the root route. */

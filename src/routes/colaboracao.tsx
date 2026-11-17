@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { EmptyState, FilterPills, PageHeader, Tag, UserAvatar, useAuthGuard } from "@/components/ui-kit";
 import { PostForm } from "@/components/PostForm";
-import { actions, fmtDate, useCurrentUser, useStore } from "@/lib/store";
+import { deletePost, showInterest } from "@/lib/posts";
+import { fmtDate, useCurrentUser, useStore } from "@/lib/store";
 import type { Post } from "@/lib/seed";
 
 export const Route = createFileRoute("/colaboracao")({
@@ -43,9 +44,9 @@ function Colaboracao() {
 
   const list = posts.filter((p) => filter === "Todas" || p.activity === filter);
 
-  const interest = (p: Post) => {
+  const interest = async (p: Post) => {
     if (!guard("/colaboracao")) return;
-    const err = actions.showInterest(p.id);
+    const err = await showInterest(p.id);
     if (err) toast.error(err);
     else toast.success(`Interesse registrado! ${p.authorName} será notificado(a).`);
   };
@@ -60,13 +61,13 @@ function Colaboracao() {
       />
       <div className="mb-5"><FilterPills label="Tipo de atividade" options={FILTERS} value={filter} onChange={setFilter} /></div>
 
-      {list.length === 0 ? <EmptyState text="Nenhuma publicação nesta categoria." /> : (
+      {!user ? <EmptyState text="Entre na sua conta para ver e criar publicações do mural." /> : list.length === 0 ? <EmptyState text="Nenhuma publicação nesta categoria." /> : (
         <div className="space-y-3">
           {list.map((p) => {
             const mine = user?.id === p.authorId;
             const already = !!user && p.interested.includes(user.id);
             const author = users.find((u) => u.id === p.authorId);
-            const count = p.interested.length;
+            const count = p.interestCount ?? p.interested.length;
             return (
               <article
                 key={p.id}
@@ -123,7 +124,7 @@ function Colaboracao() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { actions.deletePost(deleting!.id); toast.success("Publicação excluída."); }}>Excluir</AlertDialogAction>
+            <AlertDialogAction onClick={async () => { const err = await deletePost(deleting!.id); if (err) toast.error(err); else toast.success("Publicação excluída."); }}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

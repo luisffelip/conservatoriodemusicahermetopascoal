@@ -35,7 +35,7 @@ export async function enroll(classId: string): Promise<string | null> {
   const me = s.currentUserId!;
   const k = s.classes.find((x) => x.id === classId)!;
   if (k.enrolled >= k.capacity) return "Não há vagas disponíveis nesta turma.";
-  if (s.enrollments.some((e) => e.classId === classId && e.userId === me && e.status !== "Cancelada")) return "Você já solicitou matrícula nesta turma.";
+  if (s.enrollments.some((e) => e.classId === classId && e.userId === me && (e.status === "Pendente" || e.status === "Aprovada"))) return "Você já solicitou matrícula nesta turma.";
   const { data, error } = await supabase.from("enrollments").insert({ user_id: me, class_id: classId }).select().single();
   if (error) return error.code === "23505" ? "Você já solicitou matrícula nesta turma." : FAIL;
   const course = s.courses.find((c) => c.id === k.courseId)!;

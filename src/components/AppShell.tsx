@@ -2,7 +2,7 @@ import { markRead } from "@/lib/records";
 import { toast } from "sonner";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Bell, CalendarDays, DoorOpen, GraduationCap, Home, LogIn, LogOut, Menu, Music2, Search, User, Users } from "lucide-react";
+import { Bell, CalendarDays, DoorOpen, GraduationCap, Home, LogIn, LogOut, Menu, Music2, Search, ShieldCheck, User, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fmtDate, useCurrentUser, useStore } from "@/lib/store";
@@ -37,6 +37,7 @@ export function Logo({ tone = "light", compact = false }: { tone?: "light" | "da
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const user = useCurrentUser();
+  const isAdmin = useStore((s) => !!s.isAdmin);
   const navigate = useNavigate();
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
@@ -57,7 +58,14 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
             </Link>
           );
         })}
+        {isAdmin && (
+          <Link to="/responsavel" onClick={onNavigate} aria-current={path.startsWith("/responsavel") ? "page" : undefined}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${path.startsWith("/responsavel") ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}>
+            <ShieldCheck className="h-[18px] w-[18px] shrink-0" /> Responsável
+          </Link>
+        )}
       </nav>
+      <Link to="/privacidade" onClick={onNavigate} className="px-6 pb-2 text-xs text-sidebar-foreground/70 hover:underline">Política de Privacidade</Link>
       <div className="border-t border-sidebar-border p-3">
         {user ? (
           <div className="space-y-1">
