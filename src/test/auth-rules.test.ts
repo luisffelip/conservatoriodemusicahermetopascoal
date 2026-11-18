@@ -21,3 +21,17 @@ describe("sign-up rules", () => {
     expect(validateNewPassword("segredo1", "segredo2")).not.toBeNull();
   });
 });
+
+import { usesManagedOAuth } from "@/lib/auth";
+import { canReview } from "@/lib/admin";
+describe("final-stage rules", () => {
+  it("Netlify uses direct Google sign-in, Lovable hosts use managed", () => {
+    expect(usesManagedOAuth("conservatorio.netlify.app")).toBe(false);
+    expect(usesManagedOAuth("conservatoriodemusicahermetopascoal.lovable.app")).toBe(true);
+  });
+  it("only pending enrollments can be approved or refused", () => {
+    expect(canReview("Pendente")).toBe(true);
+    expect(canReview("Cancelada")).toBe(false);
+    expect(canReview("Aprovada")).toBe(false);
+  });
+});

@@ -82,3 +82,6 @@ export async function saveProfile(userId: string, data: { name: string; instrume
     .eq("id", userId);
   return error;
 }
+
+/** Lovable-hosted addresses use the managed Google sign-in; other hosts (e.g. Netlify) go straight to the auth server. */
+export const usesManagedOAuth = (host: string) => host.endsWith(".lovable.app") || host.endsWith(".lovableproject.com") || host === "localhost" || host === "127.0.0.1";

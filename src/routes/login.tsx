@@ -1,13 +1,13 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Heart, Lock, Mail, MailCheck, Music2, User } from "lucide-react";
+import { Lock, Mail, MailCheck, Music2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { authErrorMessage, syncUser, validateSignup } from "@/lib/auth";
+import { authErrorMessage, syncUser, usesManagedOAuth, validateSignup } from "@/lib/auth";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -35,12 +35,7 @@ function Field({ icon: I, label, ...props }: { icon: typeof Mail; label: string 
 
 function GoogleMark() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path fill="#4285F4" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h6c-.3 1.4-1 2.5-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z" />
-      <path fill="#34A853" d="M12 23c3 0 5.4-1 7.3-2.7l-3.5-2.7c-1 .7-2.3 1.1-3.8 1.1-2.9 0-5.4-2-6.3-4.6H2.1v2.8C3.9 20.5 7.7 23 12 23z" />
-      <path fill="#FBBC05" d="M5.7 14.1c-.2-.7-.4-1.4-.4-2.1s.1-1.4.4-2.1V7.1H2.1C1.4 8.6 1 10.2 1 12s.4 3.4 1.1 4.9l3.6-2.8z" />
-      <path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1C17.4 2.2 15 1 12 1 7.7 1 3.9 3.5 2.1 7.1l3.6 2.8c.9-2.6 3.4-4.5 6.3-4.5z" />
-    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
   );
 }
 
@@ -60,7 +55,7 @@ function Login() {
     router.history.push(back);
   };
 
-  // Already signed in (or just back from Google / Lovable sign-in): continue to where the user was going.
+  // Already signed in (or just back from Google sign-in): continue to where the user was going.
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) { await syncUser(data.session.user); finish(); }
@@ -109,9 +104,14 @@ function Login() {
     }
   };
 
-  const social = async (provider: "google" | "lovable") => {
+  const google = async () => {
     setError("");
-    const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
+    if (!usesManagedOAuth(window.location.hostname)) {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } });
+      if (error) setError("Não foi possível entrar com Google agora. Tente novamente.");
+      return;
+    }
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) return setError("Não foi possível entrar agora. Tente novamente.");
     if (result.redirected) return;
     const { data } = await supabase.auth.getUser();
@@ -150,8 +150,7 @@ function Login() {
               {mode !== "forgot" && (
                 <>
                   <div className="mt-6 grid gap-2">
-                    <Button type="button" variant="outline" className="h-11 w-full gap-2" onClick={() => social("google")}><GoogleMark /> Continuar com Google</Button>
-                    <Button type="button" variant="outline" className="h-11 w-full gap-2" onClick={() => social("lovable")}><Heart className="h-4 w-4 text-eventos" /> Continuar com Lovable</Button>
+                    <Button type="button" variant="outline" className="h-11 w-full gap-2.5 border-[#747775] bg-[#FFFFFF] text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F]" onClick={google}><GoogleMark /> Continuar com Google</Button>
                   </div>
                   <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="h-px flex-1 bg-border" />ou com e-mail<span className="h-px flex-1 bg-border" />

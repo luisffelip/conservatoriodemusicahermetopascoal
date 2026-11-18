@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel } from "@/components/ui-kit";
 
-export const PRIVACY_CONTACT = "privacidade@conservatoriohermetopascoal.example";
+const PRIVACY_CONTACT = "privacidade@conservatoriohermetopascoal.example";
 
 export const Route = createFileRoute("/privacidade")({
   head: () => ({
